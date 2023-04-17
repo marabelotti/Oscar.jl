@@ -271,7 +271,6 @@ export binomial_primary_decomposition
 export bipyramid
 export birkhoff_polytope
 export blocks
-export blowup_on_ith_minimal_torus_orbit
 export bond_matroid
 export borcherds_method
 export boundary_lattice_points
@@ -747,6 +746,7 @@ export is_non_zero_divisor
 export is_normal
 export is_normal_subgroup
 export is_normalized_by
+export is_one
 export is_open_embedding
 export is_orbifold
 export is_perfect, has_is_perfect, set_is_perfect
@@ -801,6 +801,7 @@ export is_vertical_k_separation
 export is_very_ample
 export is_weakly_connected
 export is_welldefined
+export is_zero
 export is_z_graded
 export is_zm_graded
 export isfinite
@@ -935,6 +936,7 @@ export multi_hilbert_series_reduced
 export multiplication_induced_morphism
 export multiplication_morphism
 export multiplicative_jordan_decomposition
+export n_cones
 export n_connected_components
 export n_maximal_cells
 export n_maximal_cones
@@ -1132,8 +1134,10 @@ export representative_action
 export represents_element
 export restrict
 export restrict_automorphism
+export restrict_automorphism_group
 export restrict_codomain
 export restrict_domain
+export restrict_endomorphism
 export restrict_homomorphism
 export restricted_map
 export restricted_map_type
@@ -1227,8 +1231,8 @@ export standard_spec
 export stanley_reisner_ideal
 export stanley_reisner_ring
 export star_subcomplex
+export star_subdivision
 export star_triangulations
-export starsubdivision
 export strongly_connected_components
 export structure_sheaf
 export structure_tropical_jacobian
