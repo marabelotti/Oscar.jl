@@ -1178,7 +1178,7 @@ julia> leading_coefficient(G[8])
 ```
 """
 function fglm(I::MPolyIdeal; start_ordering::MonomialOrdering = default_ordering(base_ring(I)), destination_ordering::MonomialOrdering)
-	isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The FGLM algorithm requires a coefficient ring that is a field.")
+	isa(coefficient_ring(I), AbstractAlgebra.Field) || error("The FGLM algorithm requires a coefficient ring that is a field.")
 	(is_global(start_ordering) && is_global(destination_ordering)) || error("Start and destination orderings must be global.")
 	haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
 	if !haskey(I.gb, start_ordering)
@@ -1234,7 +1234,7 @@ degrevlex([x, y])
 """
 function _compute_groebner_basis_using_fglm(I::MPolyIdeal,
 	destination_ordering::MonomialOrdering)
-	isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The FGLM algorithm requires a coefficient ring that is a field.")
+	isa(coefficient_ring(I), AbstractAlgebra.Field) || error("The FGLM algorithm requires a coefficient ring that is a field.")
 	haskey(I.gb, destination_ordering) && return I.gb[destination_ordering]
 	is_global(destination_ordering) || error("Destination ordering must be global.")
 	G = groebner_assure(I, true, true)
@@ -1340,7 +1340,7 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
                                        hilbert_numerator::Union{Nothing, ZZPolyRingElem} = nothing) where {P <: MPolyRingElem}
   
   all(f -> _is_homogeneous(f, weights), gens(I)) || error("I must be given by generators homogeneous with respect to the given weights.")
-  isa(coefficient_ring(base_ring(I)), AbstractAlgebra.Field) || error("The underlying coefficient ring of I must be a field.")
+  isa(coefficient_ring(I), AbstractAlgebra.Field) || error("The underlying coefficient ring of I must be a field.")
   ordering = destination_ordering
   is_global(ordering) || error("Destination ordering must be global.")
   haskey(I.gb, ordering) && return I.gb[ordering]
@@ -1462,17 +1462,17 @@ function _find_weights(F::Vector{P}) where {P <: MPolyRingElem}
   # Here we try to find a vector with strictly positive entries in K
   # this method to find such a vector is taken from
   # https://mathoverflow.net/questions/363181/intersection-of-a-vector-subspace-with-a-cone
-  Pol = Polyhedron(-K,  zeros(Int, ncols))
+  Pol = polyhedron(-K,  zeros(Int, ncols))
   !is_feasible(Pol) && return zeros(Int, ncols)
   pos_vec = zeros(Int, ncols)
   for i in 1:ncols
     ei = [j == i ? one(QQ) : zero(QQ) for j in 1:ncols]
     obj_func = ei * K
-    L = LinearProgram(Pol, obj_func)
+    L = linear_program(Pol, obj_func)
     m, v = solve_lp(L)
     if isnothing(v)
-      Pol_new = intersect(Pol, Polyhedron(ei*K, [1]))
-      L = LinearProgram(Pol_new, obj_func)
+      Pol_new = intersect(Pol, polyhedron(ei*K, [1]))
+      L = linear_program(Pol_new, obj_func)
       v = optimal_vertex(L)
     end
     pos_vec += K*(v.p)

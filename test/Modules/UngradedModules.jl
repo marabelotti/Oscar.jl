@@ -3,53 +3,57 @@ using Random
 RNG = Random.MersenneTwister(42)
 
 """
-	randpoly(R::Ring,coeffs=0:9,max_exp=4,max_terms=8)
+    randpoly(R::Ring,coeffs=0:9,max_exp=4,max_terms=8)
 
-> Return a random Polynomial from the Polynomial Ring `R` with coefficients in `coeffs`
-> with exponents between `0` and `max_exp` und between `0` and `max_terms` terms
+Return a random Polynomial from the Polynomial Ring `R` with coefficients in `coeffs`
+with exponents between `0` and `max_exp` und between `0` and `max_terms` terms.
 """
 function randpoly(R::Oscar.Ring,coeffs=0:9,max_exp=4,max_terms=8)
-	n = nvars(R)
-	K = base_ring(R)
-	E = [[Random.rand(RNG,0:max_exp) for i=1:n] for j=1:max_terms]
-	C = [K(Random.rand(RNG,coeffs)) for i=1:max_terms]
-	M = MPolyBuildCtx(R)
-	for i=1:max_terms
-		push_term!(M,C[i],E[i])
-	end
-	return finish(M)
+  n = nvars(R)
+  K = base_ring(R)
+  E = [[Random.rand(RNG,0:max_exp) for i=1:n] for j=1:max_terms]
+  C = [K(Random.rand(RNG,coeffs)) for i=1:max_terms]
+  M = MPolyBuildCtx(R)
+  for i=1:max_terms
+    push_term!(M,C[i],E[i])
+  end
+  return finish(M)
 end
 
 @testset "Modules: Constructors" begin
-	R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
-	F = FreeMod(R,3)
-	v = [x, x^2*y+z^3, R(-1)]
-	@test v == Vector(F(v))
+  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
+  F = FreeMod(R,3)
+  v = [x, x^2*y+z^3, R(-1)]
+  @test v == Vector(F(v))
 
-	M = sub(F, [F(v), F([z, R(1), R(0)])], :none)
-	N = quo(M, [SubquoModuleElem([x+y^2, y^3*z^2+1], M)], :none)
-	AN, ai = ambient_module(N, :with_morphism)
-	@test AN.quo === N.quo
-	for i=1:ngens(N)
-		@test AN(repres(N[i])) == ai(N[i])
-	end
+  M = sub(F, [F(v), F([z, R(1), R(0)])], :none)
+  N = quo(M, [SubquoModuleElem([x+y^2, y^3*z^2+1], M)], :none)
+  AN, ai = ambient_module(N, :with_morphism)
+  @test AN.quo === N.quo
+  for i=1:ngens(N)
+    @test AN(repres(N[i])) == ai(N[i])
+  end
 
-	G = FreeMod(R,2)
-	@test F(v) in F
-	@test !(F(v) in G)
-	@test (F(v) + F([z, R(1), R(0)])) in M
-	@test !(F([R(1), R(0), R(0)]) in M)
-	@test N[1] in M
+  G = FreeMod(R,2)
+  @test F(v) in F
+  @test !(F(v) in G)
+  @test (F(v) + F([z, R(1), R(0)])) in M
+  @test !(F([R(1), R(0), R(0)]) in M)
+  @test N[1] in M
 
-	M = SubquoModule(F, [x*F[1]])
-	N = SubquoModule(F, [y*F[1]])
-	G = FreeMod(R,3,"f")
-	M_2 = SubquoModule(G, [x*G[1]])
-	@test !is_canonically_isomorphic(M,N)
-	is_iso, phi = is_canonically_isomorphic_with_map(M,M_2)
-	@test is_iso
-	@test is_welldefined(phi)
-	@test is_bijective(phi)
+  @test gen(F, 1) == deepcopy(gen(F, 1))
+  @test gen(M, 1) == deepcopy(gen(M, 1))
+  @test gen(N, 1) == deepcopy(gen(N, 1))
+
+  M = SubquoModule(F, [x*F[1]])
+  N = SubquoModule(F, [y*F[1]])
+  G = FreeMod(R,3,"f")
+  M_2 = SubquoModule(G, [x*G[1]])
+  @test !is_canonically_isomorphic(M,N)
+  is_iso, phi = is_canonically_isomorphic_with_map(M,M_2)
+  @test is_iso
+  @test is_welldefined(phi)
+  @test is_bijective(phi)
 end
 
 @testset "Intersection of modules" begin
@@ -96,7 +100,7 @@ end
   N = SubquoModule(F, AN, BN)
   P,_ = intersect(M, N)
   for g in gens(P)
-	@test !iszero(ambient_representative(g))
+    @test !iszero(ambient_representative(g))
   end
 
 
@@ -166,7 +170,7 @@ end
 
 	N = SubquoModule(R[x+2*x^2; x+y], R[z^4;])
 	tensor_resolution = tensor_product(N,free_res)
-	@test range(tensor_resolution) == range(free_res)
+	@test chain_range(tensor_resolution) == chain_range(free_res)
 	for i in Hecke.map_range(tensor_resolution)
 		f = map(free_res,i)
 		M_i = domain(f)
@@ -180,7 +184,7 @@ end
 
 	N = SubquoModule(R[x+2*x^2*z; x+y-z], R[z^4;])
 	tensor_resolution = tensor_product(free_res,N)
-	@test range(tensor_resolution) == range(free_res)
+	@test chain_range(tensor_resolution) == chain_range(free_res)
 	for i in Hecke.map_range(tensor_resolution)
 		f = map(free_res,i)
 		M_i = domain(f)
@@ -194,7 +198,7 @@ end
 
 	N = SubquoModule(R[x+2*x^2; x+y], R[z^4;])
 	hom_resolution = hom(N,free_res)
-	@test range(hom_resolution) == range(free_res)
+	@test chain_range(hom_resolution) == chain_range(free_res)
 	for i in Hecke.map_range(hom_resolution)
 		f = map(free_res,i)
 		hom_f = map(hom_resolution,i)
@@ -206,8 +210,8 @@ end
 
 	N = SubquoModule(R[x+2*x^2; x+y], R[z^4; x^2-y*z])
 	hom_resolution = hom(free_res,N)
-	@test last(range(hom_resolution)) == first(range(free_res))
-	@test first(range(hom_resolution)) == last(range(free_res))
+	@test last(chain_range(hom_resolution)) == first(chain_range(free_res))
+	@test first(chain_range(hom_resolution)) == last(chain_range(free_res))
 	for i in Hecke.map_range(hom_resolution)
                 f = map(free_res,i+1)         #f[i]: M[i] -> M[i-1]
                 hom_f = map(hom_resolution,i) #f[i]: M[i] -> M[i+1]
@@ -218,11 +222,11 @@ end
 	end
 
 	hom_hom_resolution = hom(hom_resolution,N)
-	@test range(hom_hom_resolution) == range(free_res)
+	@test chain_range(hom_hom_resolution) == chain_range(free_res)
 
 	hom_resolution = hom_without_reversing_direction(free_res,N)
-	@test last(range(hom_resolution)) == -first(range(free_res))
-	@test first(range(hom_resolution)) == -last(range(free_res))
+	@test last(chain_range(hom_resolution)) == -first(chain_range(free_res))
+	@test first(chain_range(hom_resolution)) == -last(chain_range(free_res))
 	for i in Hecke.map_range(hom_resolution)
 		f = map(free_res,-i+1)
 		hom_f = map(hom_resolution,i)
@@ -232,7 +236,7 @@ end
 		end
 	end
 	hom_hom_resolution = hom_without_reversing_direction(hom_resolution,N)
-	@test range(hom_hom_resolution) == range(free_res)
+	@test chain_range(hom_hom_resolution) == chain_range(free_res)
 end
 
 @testset "Ext, Tor" begin
@@ -1011,10 +1015,10 @@ end
   R, (x,y,z) = QQ["x", "y", "z"]
   F1 = FreeMod(R, 1)
   F2 = FreeMod(R, 2)
-  F2v, ev = oscar.dual(F2, cod=F1)
+  F2v, ev = Oscar.dual(F2, cod=F1)
   @test ev(F2v[1])(F2[1]) == F1[1] # the first generator
 
-  FF, psi = oscar.double_dual(F2)
+  FF, psi = Oscar.double_dual(F2)
   @test is_injective(psi) 
   @test_broken is_surjective(psi) # fails! Why?
   
@@ -1023,7 +1027,7 @@ end
   Mv, ev = dual(M, cod=F1)
   @test ev(Mv[1])(M[1]) == x*F1[1]
 
-  Mvv, psi = oscar.double_dual(M, cod=F1)
+  Mvv, psi = Oscar.double_dual(M, cod=F1)
   @test matrix(psi) == R[x; y]
   
   ### Quotient rings
@@ -1033,16 +1037,16 @@ end
 
   F1 = FreeMod(Q, 1)
   F2 = FreeMod(Q, 2)
-  F2v, ev = oscar.dual(F2, cod=F1)
+  F2v, ev = Oscar.dual(F2, cod=F1)
   @test ev(F2v[1])(F2[1]) == F1[1] # the first generator
   
-  FF, psi = oscar.double_dual(F2)
+  FF, psi = Oscar.double_dual(F2)
   @test is_injective(psi) 
   @test_broken is_surjective(psi) # fails! Why?
 
   M, pr = quo(F2, [sum(A[i, j]*F2[j] for j in 1:ngens(F2)) for i in 1:nrows(A)])
-  Mv, ev = oscar.dual(M, cod=F1)
-  Mvv, psi = oscar.double_dual(M, cod=F1)
+  Mv, ev = Oscar.dual(M, cod=F1)
+  Mvv, psi = Oscar.double_dual(M, cod=F1)
   @test is_injective(psi) 
   @test is_surjective(psi) # works correctly!
 end

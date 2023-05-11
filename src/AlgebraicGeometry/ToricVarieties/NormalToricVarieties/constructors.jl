@@ -36,7 +36,7 @@ Normal, affine toric variety
 ```
 """
 function affine_normal_toric_variety(C::Cone; set_attributes::Bool = true)
-    fan = PolyhedralFan(C)
+    fan = polyhedral_fan(C)
     pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
     variety = AffineNormalToricVariety(pmntv)
     
@@ -71,7 +71,7 @@ Normal, affine toric variety
 ```
 """
 function normal_toric_variety(C::Cone; set_attributes::Bool = true)
-    fan = PolyhedralFan(C)
+    fan = polyhedral_fan(C)
     pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
     variety = NormalToricVariety(pmntv)
     
@@ -123,7 +123,7 @@ Normal toric variety
 ```
 """
 function normal_toric_variety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false, set_attributes::Bool = true)
-    fan = PolyhedralFan(transpose(hcat(rays...)), IncidenceMatrix(max_cones); non_redundant = non_redundant)
+    fan = polyhedral_fan(transpose(hcat(rays...)), IncidenceMatrix(max_cones); non_redundant = non_redundant)
     return normal_toric_variety(fan; set_attributes = set_attributes)
 end
 
@@ -234,7 +234,7 @@ Normal, affine, 2-dimensional toric variety
 """
 function affine_space(::Type{NormalToricVariety}, d::Int; set_attributes::Bool = true)
     C = positive_hull(identity_matrix(ZZ, d))
-    fan = PolyhedralFan(C)
+    fan = polyhedral_fan(C)
     pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
     variety = NormalToricVariety(pmntv)
     
@@ -342,7 +342,7 @@ function weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}; set
     tr,_ = pseudo_inv(lattice_gens)
     ray_gens = ray_gens * transpose(tr)
     mc = IncidenceMatrix(subsets(Vector{Int}(1:length(w)), length(w)-1))
-    variety = normal_toric_variety(PolyhedralFan(ray_gens, mc; non_redundant=true ))
+    variety = normal_toric_variety(polyhedral_fan(ray_gens, mc; non_redundant=true ))
     
     # make standard choice for the weights of the cox ring
     set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(length(w)))
@@ -368,20 +368,20 @@ end
 
 
 @doc raw"""
-    hirzebruch_surface(r::Int; set_attributes::Bool = true)
+    hirzebruch_surface(::Type{NormalToricVariety}, r::Int; set_attributes::Bool = true)
 
 Constructs the r-th Hirzebruch surface.
 
 # Examples
 ```jldoctest
-julia> hirzebruch_surface(5)
+julia> hirzebruch_surface(NormalToricVariety, 5)
 Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 ```
 """
-function hirzebruch_surface(r::Int; set_attributes::Bool = true)
+function hirzebruch_surface(::Type{NormalToricVariety}, r::Int; set_attributes::Bool = true)
     fan_rays = [1 0; 0 1; -1 r; 0 -1]
     cones = IncidenceMatrix([[1, 2], [2, 3], [3, 4], [4, 1]])
-    variety = normal_toric_variety(PolyhedralFan(fan_rays, cones; non_redundant = true))
+    variety = normal_toric_variety(polyhedral_fan(fan_rays, cones; non_redundant = true))
     
     # make standard choice for the weights of the cox ring
     set_attribute!(variety, :torusinvariant_cartier_divisor_group, free_abelian_group(4))
@@ -424,24 +424,20 @@ end
 
 
 @doc raw"""
-    del_pezzo_surface(b::Int; set_attributes::Bool = true)
+    del_pezzo_surface(::Type{NormalToricVariety}, b::Int; set_attributes::Bool = true)
 
 Constructs the del Pezzo surface with `b` blowups for `b` at most 3.
 
 # Examples
 ```jldoctest
-julia> del_pezzo_surface(3)
+julia> del_pezzo_surface(NormalToricVariety, 3)
 Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 ```
 """
-function del_pezzo_surface(b::Int; set_attributes::Bool = true)
+function del_pezzo_surface(::Type{NormalToricVariety}, b::Int; set_attributes::Bool = true)
     # check for valid input
-    if b < 0
-        throw(ArgumentError("Number of blowups for construction of del Pezzo surfaces must be non-negative"))
-    end
-    if b > 3
-        throw(ArgumentError("Del Pezzo surfaces with more than three blowups are realized as subvarieties of toric ambient spaces. This is currently not supported"))
-    end
+    @req b >= 0 "Number of blowups for construction of del Pezzo surfaces must be non-negative"
+    @req b <= 3 "Del Pezzo surfaces with more than three blowups are realized as subvarieties of toric ambient spaces. This is currently not supported"
     
     # special case of projective space
     if b == 0
@@ -461,7 +457,7 @@ function del_pezzo_surface(b::Int; set_attributes::Bool = true)
         fan_rays = [1 0; 0 1; -1 -1; 1 1; 0 -1; -1 0]
         cones = IncidenceMatrix([[1, 4], [2, 4], [1, 5], [5, 3], [2, 6], [6, 3]])
     end
-    variety = normal_toric_variety(PolyhedralFan(fan_rays, cones; non_redundant = true))
+    variety = normal_toric_variety(polyhedral_fan(fan_rays, cones; non_redundant = true))
     
     # make standard choice for weights of the cox ring
     if b == 1
@@ -569,21 +565,21 @@ julia> bP3 = blow_up(P3, I)
 Normal toric variety
 
 julia> cox_ring(bP3)
-Multivariate Polynomial Ring in x1, x2, e, x3, x4 over Rational Field graded by 
+Multivariate Polynomial Ring in x1, x2, x3, x4, e over Rational Field graded by
   x1 -> [1 0]
   x2 -> [0 1]
-  e -> [1 -1]
   x3 -> [0 1]
   x4 -> [1 0]
+  e -> [1 -1]
 ```
 """
 function blow_up(v::AbstractNormalToricVariety, I::MPolyIdeal; coordinate_name::String = "e", set_attributes::Bool = true)
-    @req parent(gens(I)[1]) == cox_ring(v) "The ideal must be contained in the cox ring of the toric variety"
+    @req base_ring(I) == cox_ring(v) "The ideal must be contained in the cox ring of the toric variety"
     indices = [findfirst(y -> y == x, gens(cox_ring(v))) for x in gens(I)]
     @req length(indices) == ngens(I) "All generators must be indeterminates of the cox ring of the toric variety"
     cone_list = cones(v)
-    cone_indices = [filter(l -> cone_list[k,l], 1:ncols(cone_list)) for k in 1:n_cones(v)]
-    cone_index = findfirst(x -> x == indices, cone_indices)
+    indexset = Set{Int}(indices)
+    cone_index = findfirst(i -> Polymake.row(cone_list, i) == indexset, 1:nrows(cone_list))
     @req cone_index !== nothing "There is no corresponding cone that could be subdivided"
     return blow_up(v, cone_index; coordinate_name = coordinate_name, set_attributes = set_attributes)
 end
@@ -625,21 +621,26 @@ julia> bP3 = blow_up(P3, 5)
 Normal toric variety
 
 julia> cox_ring(bP3)
-Multivariate Polynomial Ring in x1, x2, e, x3, x4 over Rational Field graded by 
+Multivariate Polynomial Ring in x1, x2, x3, x4, e over Rational Field graded by
   x1 -> [1 0]
   x2 -> [0 1]
-  e -> [1 -1]
   x3 -> [0 1]
   x4 -> [1 0]
+  e -> [1 -1]
 ```
 """
 function blow_up(v::AbstractNormalToricVariety, n::Int; coordinate_name::String = "e", set_attributes::Bool = true)
     new_fan = star_subdivision(fan(v), n)
     new_variety = normal_toric_variety(new_fan; set_attributes = set_attributes)
     new_rays = rays(new_fan)
-    old_vars = [string(x) for x in gens(cox_ring(v))]
-    @req findfirst(x->occursin(coordinate_name, x), old_vars) === nothing "The name for the blowup coordinate is already taken"
-    new_vars = [if new_rays[i] in rays(fan(v)) old_vars[findfirst(x->x==new_rays[i], rays(fan(v)))] else coordinate_name end for i in 1:length(new_rays)]
+    old_rays = rays(fan(v))
+    old_vars = string.(symbols(cox_ring(v)))
+    @req !(coordinate_name in old_vars) "The name for the blowup coordinate is already taken"
+    new_vars = Vector{String}(undef, length(new_rays))
+    for i in 1:length(new_rays)
+        j = findfirst(==(new_rays[i]), old_rays)
+        new_vars[i] = j !== nothing ? old_vars[j] : coordinate_name
+    end
     set_attribute!(new_variety, :coordinate_names, new_vars)
     return new_variety
 end
@@ -758,7 +759,7 @@ function normal_toric_varieties_from_star_triangulations(P::Polyhedron; set_attr
     max_cones = [IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in t]) for t in max_cones]
     
     # construct the varieties
-    return [normal_toric_variety(PolyhedralFan(integral_rays, cones; non_redundant = true), set_attributes = set_attributes) for cones in max_cones]
+    return [normal_toric_variety(polyhedral_fan(integral_rays, cones; non_redundant = true), set_attributes = set_attributes) for cones in max_cones]
 end
 
 

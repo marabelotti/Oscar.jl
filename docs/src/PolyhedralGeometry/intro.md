@@ -5,14 +5,6 @@ DocTestSetup = quote
 end
 ```
 
-```@setup oscar
-using Oscar
-```
-
-```@contents
-Pages = ["intro.md"]
-```
-
 # Introduction
 
 The polyhedral geometry part of OSCAR provides functionality for handling
@@ -116,6 +108,25 @@ Type                                   | An `AffineHyperplane` corresponds to...
 `AbstractVector{<:Hyperplane}`         | an element of the vector.
 `Tuple` over matrix `A` and vector `b` | the affine hyperplane with normal vector `A[i, :]` and bias `b[i]`.
 `SubObjectIterator{<:Hyperplane}`      | an element of the iterator.
+
+
+## `IncidenceMatrix`
+
+Some methods will require input or return output in form of an `IncidenceMatrix`.
+
+```@docs
+IncidenceMatrix
+```
+
+From the example it can be seen that this type supports `julia`'s matrix functionality. There are also functions to retrieve specific rows or columns as a `Set` over the non-zero indices.
+
+```@docs
+row(i::IncidenceMatrix, n::Int)
+column(i::IncidenceMatrix, n::Int)
+```
+
+A typical application is the assignment of rays to the cones of a polyhedral
+fan for its construction, see [`polyhedral_fan`](@ref).
 
 
 ## Visualization
