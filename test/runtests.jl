@@ -1,6 +1,5 @@
 using Oscar
 using Test
-using Documenter
 
 import Random
 
@@ -78,10 +77,14 @@ function include(str::String)
 end
 
 @static if compiletimes
-  Base.cumulative_compile_timing(true);
+  Base.cumulative_compile_timing(true)
 end
+
 # Used in both Rings/slpolys.jl and StraightLinePrograms/runtests.jl
 const SLP = Oscar.StraightLinePrograms
+
+include("Aqua.jl")
+
 include("printing.jl")
 
 include("PolyhedralGeometry/runtests.jl")
@@ -106,10 +109,8 @@ include("Experimental/galois.jl")
 include("Experimental/gmodule.jl")
 include("Experimental/ModStdQt.jl")
 include("Experimental/ModStdNF.jl")
-include("Experimental/MPolyRingSparse.jl")
 include("Experimental/MatrixGroups.jl")
 include("Experimental/JuLie.jl")
-include("Experimental/SymmetricIntersections.jl")
 include("Experimental/ExteriorAlgebra.jl")
 
 include("Rings/ReesAlgebra.jl")
@@ -120,8 +121,9 @@ include("InvariantTheory/runtests.jl")
 
 include("AlgebraicGeometry/Schemes/runtests.jl")
 include("AlgebraicGeometry/ToricVarieties/runtests.jl")
-include("AlgebraicGeometry/TropicalGeometry/runtests.jl")
 include("AlgebraicGeometry/Surfaces/K3Auto.jl")
+
+include("TropicalGeometry/runtests.jl")
 
 include("Serialization/runtests.jl")
 
