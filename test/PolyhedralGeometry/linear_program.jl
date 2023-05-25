@@ -52,6 +52,18 @@
         str = "pm::QuadraticExtension<pm::Rational>\n"
       end
       @test string(solve_milp(MILP3))==string("(", str, "inf, nothing)")
+
+      buffer = IOBuffer()
+      @test  describe(buffer, MILP1) === nothing
+      @test  String(take!(buffer)) ==     
+      """
+      The mixed integer linear program
+         max{c⋅x + k | x ∈ P}
+      where P is a Polyhedron{QQFieldElem}
+         c=Polymake.Rational[1 3]
+         k=0
+         x1 in ZZ"""
+
     end
 
     @testset "LinearProgram: lp and mps files" begin
